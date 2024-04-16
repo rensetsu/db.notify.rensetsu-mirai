@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "scraper/*"
+      - "mirai/*"
   schedule:
     - cron: "0 12 * * 0"
 permissions:
@@ -30,7 +30,7 @@ jobs:
         shell: pwsh
         run: |
           try {
-            python3 scraper
+            python3 mirai
             $date = Get-Date -Format "yyyy-MM-dd'T'HH:mm:sszzzz"
             git config --local user.email "167072439+rensetsu-bot@users.noreply.github.com"
             git config --local user.name "Rensetsu[bot]"

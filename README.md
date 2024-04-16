@@ -1,6 +1,6 @@
-# Rensetsu Service Scraper for {PLATFORM}
+# Rensetsu Service Scraper for Notify.moe
 
-This is a command-line utility to scrape {PLATFORM} data and convert it to
+This is a command-line utility to scrape Notify.moe data and convert it to
 Rensetsu Media object format
 
 ## Requirements
@@ -12,8 +12,8 @@ Rensetsu Media object format
 Simply running following commands before using the app:
 
 ```sh
-git clone https://github.com/rensetsu/{REPO_NAME}
-cd {REPO_NAME}
+git clone https://github.com/rensetsu/db.notify.rensetsu-mirai
+cd db.notify.rensetsu-mirai
 python3 -m venv venv
 source ./venv/bin/activate
 pip install -U -r requirements.txt
@@ -22,7 +22,7 @@ pip install -U -r requirements.txt
 ## Usage
 
 ```sh
-python scraper
+python mirai
 ```
 
 ## License
