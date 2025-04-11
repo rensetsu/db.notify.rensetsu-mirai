@@ -14,10 +14,10 @@ def download_database() -> bool:
             rsp.raise_for_status()
             pprint.print(Status.INFO, "Downloading database")
             total_size = int(rsp.headers.get("content-length", 0))
-            with open("Anime.dat", "wb") as file, abr(total_size) as bar:  # type: ignore
-                for chunk in rsp.iter_content(chunk_size=1):  # type: ignore
+            with open("Anime.dat", "wb") as file, abr(total_size, unit="B", scale="IEC") as bar:  # type: ignore
+                for chunk in rsp.iter_content(chunk_size=8192):  # type: ignore
                     file.write(chunk)
-                    bar()
+                    bar(8192)
         pprint.print(Status.PASS, "Download complete")
         return True
     except req.exceptions.RequestException as e:

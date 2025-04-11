@@ -6,7 +6,7 @@ from typing import Any
 from uuid import uuid4
 
 from alive_progress import alive_bar
-from consts import Status, pprint
+from consts import Status, pprint, Platform
 from librensetsu.formatter import remove_empty_keys
 from librensetsu.humanclock import translate_season
 from librensetsu.models import (
@@ -16,6 +16,7 @@ from librensetsu.models import (
     MediaInfo,
     PictureUrls,
     RelationMaps,
+    TraktSeason,
 )
 from models import Anime
 
@@ -29,6 +30,7 @@ def process_data(text: str, data_uuid: str | None = None) -> MediaInfo:
     :rtype: MediaInfo
     """
     json: Anime = loads(text)
+    nid = json["id"]
 
     # proc. title
     english = json["title"]["english"]
@@ -77,14 +79,14 @@ def process_data(text: str, data_uuid: str | None = None) -> MediaInfo:
         exts = img["extension"]
         modified = img["lastModified"]
         finimg = PictureUrls(
-            original=f"{imgcdn}original/{json['id']}{exts}?{modified}",
-            large=f"{imgcdn}large/{json['id']}{exts}?{modified}",
-            medium=f"{imgcdn}medium/{json['id']}{exts}?{modified}",
-            small=f"{imgcdn}small/{json['id']}{exts}?{modified}",
+            original=f"{imgcdn}original/{nid}{exts}?{modified}",
+            large=f"{imgcdn}large/{nid}{exts}?{modified}",
+            medium=f"{imgcdn}medium/{nid}{exts}?{modified}",
+            small=f"{imgcdn}small/{nid}{exts}?{modified}",
         )
 
     # proc. mappings
-    fmaps = RelationMaps(notify=json["id"])
+    fmaps = RelationMaps(notify=nid)
     mappings = json["mappings"]
     if mappings:
         media_type = json["type"] if json["type"] else None
@@ -95,6 +97,11 @@ def process_data(text: str, data_uuid: str | None = None) -> MediaInfo:
             serv = mapping["service"]
             mid = mapping["serviceId"]
             match serv:
+                case "anidb/anime":
+                    fmaps.anidb = int(mid.replace("a", ""))
+                case "":
+                    pprint.print(Status.WARN, f"Found a stub service info, guessing as AniDB instead for {mid} on {nid}", platform=Platform.ANIDB)
+                    fmaps.anidb = int(mid.replace("a", ""))
                 case "shoboi/anime":
                     fmaps.syoboical = int(mid)
                 case "anilist/anime":
@@ -102,19 +109,43 @@ def process_data(text: str, data_uuid: str | None = None) -> MediaInfo:
                 case "myanimelist/anime":
                     fmaps.myanimelist = int(re.sub(r"\D", "", mid))
                 case "kitsu/anime":
-                    fmaps.kitsu = IdSlugPair(id=int(mid))
+                    try:
+                        fmaps.kitsu = IdSlugPair(id=int(mid))
+                    except Exception as err:
+                        pprint.print(Status.ERR, f"{mid} is not Kitsu ID on {nid}", platform=Platform.KITSU)
                 case "trakt/anime":
                     fmaps.trakt = ConventionalMapping(
                         id=int(mid),
                         media_type=media_type,  # type: ignore
+                    )
+                case "trakt/season":
+                    pprint.print(Status.INFO, f"This entry ({nid}) uses unique Trakt season ID ({mid}) instead!", platform=Platform.TRAKT)
+                    fmaps.trakt = TraktSeason(
+                        id=int(mid),
+                        media_type="seasons"
                     )
                 case "tvdb/anime":
                     fmaps.tvdb = ConventionalMapping(
                         id=int(mid),
                         media_type=media_type,  # type: ignore
                     )
+                case "thetvdb/anime":
+                    splitter = mid.split('/')
+                    season = None
+                    if len(splitter) == 2:
+                        season = int(splitter[1])
+                    fmaps.tvdb = ConventionalMapping(
+                        id=int(splitter[0]),
+                        season=season,
+                        media_type=media_type,  # type: ignore
+                    )
+                case "imdb/anime":
+                    fmaps.imdb = ConventionalMapping(
+                        id=mid,
+                        media_type=media_type,  # type: ignore
+                    )
                 case _:
-                    pass
+                    pprint.print(Status.INFO, f"Entry from {serv} was skipped. Mapping info: {mapping}")
 
     try:
         season = translate_season(fsdate)
