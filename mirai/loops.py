@@ -151,7 +151,7 @@ def process_data(text: str, data_uuid: str | None = None) -> MediaInfo:
                     case _:
                         pprint.print(Status.INFO, f"Entry from {serv} was skipped. Mapping info: {mapping}")
             except ValueError as err:
-                pprint.print(Status.ERROR f"Entry {nid} has invalid value for `{serv}`: {mid}")
+                pprint.print(Status.ERROR, f"Entry {nid} has invalid value for `{serv}`: {mid}")
 
     try:
         season = translate_season(fsdate)
