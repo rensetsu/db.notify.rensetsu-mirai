@@ -99,56 +99,59 @@ def process_data(text: str, data_uuid: str | None = None) -> MediaInfo:
             if not mid:
                 pprint.print(Status.WARN, f"{serv} value is empty!")
                 continue
-            match serv:
-                case "anidb/anime":
-                    fmaps.anidb = int(mid.replace("a", ""))
-                case "":
-                    pprint.print(Status.WARN, f"Found a stub service info, guessing as AniDB instead to {mid} on {nid}", platform=Platform.ANIDB)
-                    fmaps.anidb = int(mid.replace("a", ""))
-                case "shoboi/anime":
-                    fmaps.syoboical = int(mid)
-                case "anilist/anime":
-                    fmaps.anilist = int(mid)
-                case "myanimelist/anime":
-                    fmaps.myanimelist = int(re.sub(r"\D", "", mid))
-                case "kitsu/anime":
-                    try:
-                        fmaps.kitsu = IdSlugPair(id=int(mid))
-                    except Exception as err:
-                        pprint.print(Status.ERR, f"{mid} is not Kitsu ID on {nid}", platform=Platform.KITSU)
-                case "trakt/anime":
-                    fmaps.trakt = ConventionalMapping(
-                        id=int(mid),
-                        media_type=media_type,  # type: ignore
-                    )
-                case "trakt/season":
-                    pprint.print(Status.INFO, f"This entry ({nid}) uses unique Trakt season ID ({mid}) instead!", platform=Platform.TRAKT)
-                    fmaps.trakt = TraktSeason(
-                        id=int(mid),
-                        media_type="seasons"
-                    )
-                case "tvdb/anime":
-                    fmaps.tvdb = ConventionalMapping(
-                        id=int(mid),
-                        media_type=media_type,  # type: ignore
-                    )
-                case "thetvdb/anime":
-                    splitter = mid.split('/')
-                    season = None
-                    if len(splitter) == 2:
-                        season = int(splitter[1])
-                    fmaps.tvdb = ConventionalMapping(
-                        id=int(splitter[0]),
-                        season=season,
-                        media_type=media_type,  # type: ignore
-                    )
-                case "imdb/anime":
-                    fmaps.imdb = ConventionalMapping(
-                        id=mid,
-                        media_type=media_type,  # type: ignore
-                    )
-                case _:
-                    pprint.print(Status.INFO, f"Entry from {serv} was skipped. Mapping info: {mapping}")
+            try:
+                match serv:
+                    case "anidb/anime":
+                        fmaps.anidb = int(mid.replace("a", ""))
+                    case "":
+                        pprint.print(Status.WARN, f"Found a stub service info, guessing as AniDB instead to {mid} on {nid}", platform=Platform.ANIDB)
+                        fmaps.anidb = int(mid.replace("a", ""))
+                    case "shoboi/anime":
+                        fmaps.syoboical = int(mid)
+                    case "anilist/anime":
+                        fmaps.anilist = int(mid)
+                    case "myanimelist/anime":
+                        fmaps.myanimelist = int(re.sub(r"\D", "", mid))
+                    case "kitsu/anime":
+                        try:
+                            fmaps.kitsu = IdSlugPair(id=int(mid))
+                        except Exception as err:
+                            pprint.print(Status.ERR, f"{mid} is not Kitsu ID on {nid}", platform=Platform.KITSU)
+                    case "trakt/anime":
+                        fmaps.trakt = ConventionalMapping(
+                            id=int(mid),
+                            media_type=media_type,  # type: ignore
+                        )
+                    case "trakt/season":
+                        pprint.print(Status.INFO, f"This entry ({nid}) uses unique Trakt season ID ({mid}) instead!", platform=Platform.TRAKT)
+                        fmaps.trakt = TraktSeason(
+                            id=int(mid),
+                            media_type="seasons"
+                        )
+                    case "tvdb/anime":
+                        fmaps.tvdb = ConventionalMapping(
+                            id=int(mid),
+                            media_type=media_type,  # type: ignore
+                        )
+                    case "thetvdb/anime":
+                        splitter = mid.split('/')
+                        season = None
+                        if len(splitter) == 2:
+                            season = int(splitter[1])
+                        fmaps.tvdb = ConventionalMapping(
+                            id=int(splitter[0]),
+                            season=season,
+                            media_type=media_type,  # type: ignore
+                        )
+                    case "imdb/anime":
+                        fmaps.imdb = ConventionalMapping(
+                            id=mid,
+                            media_type=media_type,  # type: ignore
+                        )
+                    case _:
+                        pprint.print(Status.INFO, f"Entry from {serv} was skipped. Mapping info: {mapping}")
+            except ValueError as err:
+                pprint.print(Status.ERROR f"Entry {nid} has invalid value for `{serv}`: {mid}")
 
     try:
         season = translate_season(fsdate)
