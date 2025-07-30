@@ -96,10 +96,10 @@ def process_data(text: str, data_uuid: str | None = None) -> MediaInfo:
         for mapping in mappings:
             serv = mapping["service"]
             mid = mapping["serviceId"]
+            if not mid:
+                pprint.print(Status.WARN, f"{serv} value is empty!")
+                continue
             match serv:
-                if not mid:
-                    pprint.print(Status.WARN, f"{serv} value is empty!")
-                    continue
                 case "anidb/anime":
                     fmaps.anidb = int(mid.replace("a", ""))
                 case "":
