@@ -97,10 +97,13 @@ def process_data(text: str, data_uuid: str | None = None) -> MediaInfo:
             serv = mapping["service"]
             mid = mapping["serviceId"]
             match serv:
+                if not mid:
+                    pprint.print(Status.WARN, f"{serv} value is empty!")
+                    continue
                 case "anidb/anime":
                     fmaps.anidb = int(mid.replace("a", ""))
                 case "":
-                    pprint.print(Status.WARN, f"Found a stub service info, guessing as AniDB instead for {mid} on {nid}", platform=Platform.ANIDB)
+                    pprint.print(Status.WARN, f"Found a stub service info, guessing as AniDB instead to {mid} on {nid}", platform=Platform.ANIDB)
                     fmaps.anidb = int(mid.replace("a", ""))
                 case "shoboi/anime":
                     fmaps.syoboical = int(mid)
